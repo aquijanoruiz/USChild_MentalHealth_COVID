@@ -29,7 +29,7 @@ nhis_clean_indv <- nhis_clean_indv %>%
     c11to13in19f  = as.integer(cohort_sex == 6)      # females aged 11-13 in 2019
   )
 
-# Store variable names as vector
+# Store variable names
 cohorts <- c(
   "c11to13in19f", "c11to13in19m", "c8to10in19f", 
   "c8to10in19m", "c5to7in19f", "c5to7in19m"
@@ -61,7 +61,7 @@ nhis_clean_indv <- nhis_clean_indv %>%
     lag3  = as.integer(timeToTreat == 3)
   )
 
-# Store variable names as vector
+# Store variable names
 lagvars <- c("lag0","lag1","lag2","lag3")
 leadvars <- c("lead4","lead3","lead2")
 
@@ -76,7 +76,7 @@ for(c in cohorts){
   }
 }
 
-# Store variable names as vector
+# Store variable names
 cohort_lags <- unlist(lapply(cohorts, function(c) paste0(c, "_", lagvars)))
 cohort_leads <- unlist(lapply(cohorts, function(c) paste0(c, "_", leadvars)))
 
@@ -93,7 +93,7 @@ nhis_clean_indv <- nhis_clean_indv %>%
     income = as_factor(income)
   )
 
-# Store variable names as vector
+# Store variable names
 controls <- c("race", "cntparnts", "lvledu", "income")
 
 #-------------------------------------------------------
@@ -307,9 +307,9 @@ results_partially_pooled_dep <- bind_rows(
 )
 
 # Plot event study
-plot_partially_pooled_dep <- 
-  three_panel_plot(results_partially_pooled_dep, "Depression, %"); plot_partially_pooled_dep
-ggsave("plots/fig_partially_pooled_depression.png", plot_partially_pooled_dep, width = 8, height = 8)
+fig_partially_pooled_dep <- 
+  three_panel_plot(results_partially_pooled_dep, "Depression, %"); fig_partially_pooled_dep
+ggsave("plots/fig_partially_pooled_dep_v2.png", fig_partially_pooled_dep, width = 8, height = 8)
 
 # Anxiety --------------------
 results_partially_pooled_anx <- 
@@ -359,9 +359,9 @@ results_partially_pooled_anx <- bind_rows(
 )
 
 # Plot event study
-plot_partially_pooled_anx <- 
-  three_panel_plot(results_partially_pooled_anx, "Anxiety, %"); plot_partially_pooled_anx
-ggsave("plots/fig_partially_pooled_anxiety.png", plot_partially_pooled_anx, width = 8, height = 8)
+fig_partially_pooled_anx <- 
+  three_panel_plot(results_partially_pooled_anx, "Anxiety, %"); fig_partially_pooled_anx
+ggsave("plots/fig_partially_pooled_anx_v2.png", fig_partially_pooled_anx, width = 8, height = 8)
 
 #-------------------------------------------------------
 # Model 3 plots: fully interacted model
@@ -387,9 +387,9 @@ results_fully_interacted_dep <- results_fully_interacted_dep %>%
     event_time = if_else(time_type == "lead", -time_num, time_num)
   ); results_fully_interacted_dep
 
-plot_fully_interacted_dep <- 
-  three_panel_plot(results_fully_interacted_dep, "Depression, %"); plot_fully_interacted_dep
-ggsave("plots/fig_fully_interacted_depression_v2.png", plot_fully_interacted_dep, width = 8, height = 8)
+fig_fully_interacted_dep <- 
+  three_panel_plot(results_fully_interacted_dep, "Depression, %"); fig_fully_interacted_dep
+ggsave("plots/fig_fully_interacted_dep_v2.png", fig_fully_interacted_dep, width = 8, height = 8)
 
 # Anxiety --------------------
 results_fully_interacted_anx <- 
@@ -411,6 +411,6 @@ results_fully_interacted_anx <- results_fully_interacted_anx %>%
     event_time = if_else(time_type == "lead", -time_num, time_num)
   ); results_fully_interacted_anx
 
-plot_fully_interacted_anx <- 
-  three_panel_plot(results_fully_interacted_anx, "Anxiety, %"); plot_fully_interacted_anx
-ggsave("plots/fig_fully_interacted_anxiety_v2.png", plot_fully_interacted_anx, width = 8, height = 8)
+fig_fully_interacted_anx <- 
+  three_panel_plot(results_fully_interacted_anx, "Anxiety, %"); fig_fully_interacted_anx
+ggsave("plots/fig_fully_interacted_anx_v2.png", fig_fully_interacted_anx, width = 8, height = 8)
