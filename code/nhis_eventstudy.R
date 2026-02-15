@@ -112,8 +112,9 @@ nhis_design <- svydesign(
 )
 
 #-------------------------------------------------------
-# Model 1: Fully pooled model (common event-time effects)
+# Fully pooled model (common event-time effects)
 #-------------------------------------------------------
+# This model is not included in the paper.
 
 # Depression
 formula_fully_pooled_dep <- paste(
@@ -134,8 +135,9 @@ model_fully_pooled_anx <- svyglm(as.formula(formula_fully_pooled_anx), design = 
 summary(model_fully_pooled_anx)
 
 #-------------------------------------------------------
-# Model 2: Partially pooled model (shared leads & cohort × lag interactions)
+# Model 1: Partially pooled model (shared leads & cohort × lag interactions)
 #-------------------------------------------------------
+# This model is summarized in Figure 2 and Figure 3.
 
 # Depression
 formula_partially_pooled_dep <- paste(
@@ -156,8 +158,9 @@ model_partially_pooled_anx <- svyglm(as.formula(formula_partially_pooled_anx), d
 summary(model_partially_pooled_anx)
 
 #-------------------------------------------------------
-# Model 3: Fully interacted model (cohort × lead and lag interactions)
+# Model 2: Fully interacted model (cohort × lead and lag interactions)
 #-------------------------------------------------------
+# This model is summarized in eFigure 1 and eFigure 2 in the Appendix.
 
 # Depression
 formula_fully_interacted_dep <- paste(
@@ -228,7 +231,7 @@ three_panel_plot <- function(data, ylab){
   
   # Necessary for males to be on the left side of the plot
   data <- data %>% mutate(
-    sex = factor(sex, levels = c("Male", "Female"))
+    sex = factor(sex, levels = c("Males", "Females"))
   )
   
   plot1 <- data %>% 
@@ -241,7 +244,7 @@ three_panel_plot <- function(data, ylab){
     plot_event_study() + 
     labs(
       title = "B. 8-10 years in 2019",
-      x = "", y = ylab
+      y = ylab
     )
   
   plot3 <- data %>% 
@@ -256,7 +259,7 @@ three_panel_plot <- function(data, ylab){
 }
 
 #-------------------------------------------------------
-# Model 2 plots: partially pooled model
+# Figures 2 & 3: partially pooled model
 #-------------------------------------------------------
 
 # Depression --------------------
@@ -278,7 +281,7 @@ shared_leads_dep <- results_partially_pooled_dep %>%
       term == "lead3" ~ 3,
       term == "lead2" ~ 2
     ),
-    event_time = -time_num
+    event_time = -time_num # negative for leads
   )
 
 # Cohort–specific lags
@@ -287,17 +290,17 @@ results_partially_pooled_dep <- results_partially_pooled_dep %>%
   mutate(
     cohort = str_extract(term, "c\\d+to\\d+in19"),
     sex = str_extract(term, "(?<=in19)[fm]") %>%
-      recode(m = "Male", f = "Female"),
+      recode(m = "Males", f = "Females"),
     time_type = "lag",
     time_num = as.integer(str_extract(term, "\\d+$")),
-    event_time = time_num
+    event_time = time_num # positive for lags
   ); results_partially_pooled_dep
 
 # Expand shared leads so each cohort gets a copy
 shared_leads_dep_expand <- shared_leads_dep %>%
   crossing(
     cohort = c("c11to13in19", "c8to10in19", "c5to7in19"), 
-    sex = c("Male", "Female")
+    sex = c("Males", "Females")
   ) # creates all combinations
 
 # Final event-study dataset
@@ -309,7 +312,7 @@ results_partially_pooled_dep <- bind_rows(
 # Plot event study
 fig_partially_pooled_dep <- 
   three_panel_plot(results_partially_pooled_dep, "Depression, %"); fig_partially_pooled_dep
-ggsave("plots/fig_partially_pooled_dep_v2.png", fig_partially_pooled_dep, width = 8, height = 8)
+ggsave("plots/fig2_partially_pooled_dep.png", fig_partially_pooled_dep, width = 8, height = 8)
 
 # Anxiety --------------------
 results_partially_pooled_anx <- 
@@ -330,7 +333,7 @@ shared_leads_anx <- results_partially_pooled_anx %>%
       term == "lead3" ~ 3,
       term == "lead2" ~ 2
     ),
-    event_time = -time_num
+    event_time = -time_num # negative for leads
   )
 
 # Cohort–specific lags
@@ -339,17 +342,17 @@ results_partially_pooled_anx <- results_partially_pooled_anx %>%
   mutate(
     cohort = str_extract(term, "c\\d+to\\d+in19"),
     sex = str_extract(term, "(?<=in19)[fm]") %>%
-      recode(m = "Male", f = "Female"),
+      recode(m = "Males", f = "Females"),
     time_type = "lag",
     time_num = as.integer(str_extract(term, "\\d+$")),
-    event_time = time_num
+    event_time = time_num # positive for lags
   ); results_partially_pooled_anx
 
 # Expand shared leads so each cohort gets a copy
 shared_leads_anx_expand <- shared_leads_anx %>%
   crossing(
     cohort = c("c11to13in19", "c8to10in19", "c5to7in19"), 
-    sex = c("Male", "Female")
+    sex = c("Males", "Females")
   ) # creates all combinations
 
 # Final event-study dataset
@@ -361,10 +364,10 @@ results_partially_pooled_anx <- bind_rows(
 # Plot event study
 fig_partially_pooled_anx <- 
   three_panel_plot(results_partially_pooled_anx, "Anxiety, %"); fig_partially_pooled_anx
-ggsave("plots/fig_partially_pooled_anx_v2.png", fig_partially_pooled_anx, width = 8, height = 8)
+ggsave("plots/fig3_partially_pooled_anx.png", fig_partially_pooled_anx, width = 8, height = 8)
 
 #-------------------------------------------------------
-# Model 3 plots: fully interacted model
+# eFigures 1 & 2: fully interacted model
 #-------------------------------------------------------
 
 # Depression --------------------
@@ -376,20 +379,22 @@ results_fully_interacted_dep <-
     conf.high = conf.high * 100
   )
 
+# Filter lead and lag coefficients
 results_fully_interacted_dep <- results_fully_interacted_dep %>%
   filter(str_detect(term, "_lead") | str_detect(term, "_lag")) %>%
   mutate(
     cohort = str_extract(term, "c\\d+to\\d+in19"),
     sex = str_extract(term, "(?<=in19)[fm]") %>%
-      recode(m = "Male", f = "Female"),
+      recode(m = "Males", f = "Females"),
     time_type = if_else(str_detect(term, "lead"), "lead", "lag"),
     time_num = as.integer(str_extract(term, "\\d+$")),
     event_time = if_else(time_type == "lead", -time_num, time_num)
   ); results_fully_interacted_dep
 
+# Plot event study
 fig_fully_interacted_dep <- 
   three_panel_plot(results_fully_interacted_dep, "Depression, %"); fig_fully_interacted_dep
-ggsave("plots/fig_fully_interacted_dep_v2.png", fig_fully_interacted_dep, width = 8, height = 8)
+ggsave("plots/efig1_fully_interacted_dep.png", fig_fully_interacted_dep, width = 8, height = 8)
 
 # Anxiety --------------------
 results_fully_interacted_anx <- 
@@ -400,17 +405,19 @@ results_fully_interacted_anx <-
     conf.high = conf.high * 100
   )
 
+# Filter lead and lag coefficients
 results_fully_interacted_anx <- results_fully_interacted_anx %>%
   filter(str_detect(term, "_lead") | str_detect(term, "_lag")) %>%
   mutate(
     cohort = str_extract(term, "c\\d+to\\d+in19"),
     sex = str_extract(term, "(?<=in19)[fm]") %>%
-      recode(m = "Male", f = "Female"),
+      recode(m = "Males", f = "Females"),
     time_type = if_else(str_detect(term, "lead"), "lead", "lag"),
     time_num = as.integer(str_extract(term, "\\d+$")),
     event_time = if_else(time_type == "lead", -time_num, time_num)
   ); results_fully_interacted_anx
 
+# Plot event study
 fig_fully_interacted_anx <- 
   three_panel_plot(results_fully_interacted_anx, "Anxiety, %"); fig_fully_interacted_anx
-ggsave("plots/fig_fully_interacted_anx_v2.png", fig_fully_interacted_anx, width = 8, height = 8)
+ggsave("plots/efig_fully_interacted_anx.png", fig_fully_interacted_anx, width = 8, height = 8)
